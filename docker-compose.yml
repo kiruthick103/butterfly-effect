@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: butterfly_backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite:///./butterfly_effect.db
+      - JWT_SECRET=production-secret-key-change-me-2026
+      - AI_PROVIDER=mock
+      - MAX_SIMULATION_STEPS=100000
+      - MAX_SIMULATION_DURATION=100.0
+    restart: unless-stopped
+    volumes:
+      - data:/app/data
+
+volumes:
+  data:
