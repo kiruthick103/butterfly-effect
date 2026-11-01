@@ -357,6 +357,7 @@ class ScenarioSimulationEngine:
                     potential_impact=lf.get("potential_impact", "Noticeable practical consequence"),
                     recommended_action=lf.get("recommended_action", "Take proactive action immediately"),
                     what_happens_after=lf.get("what_happens_after", "Trajectory stabilizes into new normal"),
+                    next_scenario=lf.get("next_scenario", lf.get("what_happens_after", "Proceed to downstream operational verification plan.")),
                     expected_result=lf.get("expected_result", lf.get("what_happens_next", "")),
                     sub_scenarios=sub_scens,
                     sub_scenario=sub_scens[0] if sub_scens else None,

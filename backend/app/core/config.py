@@ -31,12 +31,12 @@ class Settings(BaseSettings):
 
     # AI Configuration
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
-    GROQ_MODEL: str = os.getenv("GROQ_MODEL", "qwen/qwen3.8-27b")
+    GROQ_MODEL: str = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
-    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
+    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
     AI_PROVIDER: str = os.getenv("AI_PROVIDER", "synthesis")  # Unified AI Synthesis Engine
     AI_API_KEY: str = os.getenv("AI_API_KEY", "")
-    AI_MODEL: str = os.getenv("AI_MODEL", "qwen/qwen3.8-27b")
+    AI_MODEL: str = os.getenv("AI_MODEL", "openai/gpt-oss-120b")
 
     # Simulation Resource Limits (OWASP / DoS protection)
     MAX_SIMULATION_STEPS: int = 100000
