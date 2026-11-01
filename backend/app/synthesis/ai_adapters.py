@@ -90,6 +90,47 @@ class GeminiAdapter:
         return None
 
 
+class OpenRouterAdapter:
+    """OpenRouter API Adapter connecting to DeepSeek, Llama 3.3, and 100+ models."""
+
+    @staticmethod
+    async def is_available() -> bool:
+        return bool(settings.OPENROUTER_API_KEY)
+
+    @staticmethod
+    async def chat_completion(prompt: str, system_prompt: str = "You are a quantitative systems simulation scientist. Respond in valid JSON only.", temperature: float = 0.2) -> Optional[Dict[str, Any]]:
+        if not settings.OPENROUTER_API_KEY:
+            return None
+
+        headers = {
+            **COMMON_HEADERS,
+            "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
+            "HTTP-Referer": "http://127.0.0.1:5173",
+            "X-Title": "Butterfly Effect Lab"
+        }
+        payload = {
+            "model": settings.OPENROUTER_MODEL,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt}
+            ],
+            "response_format": {"type": "json_object"},
+            "temperature": temperature
+        }
+
+        try:
+            async with httpx.AsyncClient(timeout=16.0) as client:
+                resp = await client.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload)
+                if resp.status_code == 200:
+                    content = resp.json()["choices"][0]["message"]["content"].strip()
+                    return json.loads(content)
+                else:
+                    logger.warning(f"OpenRouter API error {resp.status_code}: {resp.text[300:]}")
+        except Exception as e:
+            logger.warning(f"OpenRouter invocation failed: {e}")
+        return None
+
+
 class DualModelSynthesizer:
     """Coordinates independent multi-stream scenario intelligence from Groq & Gemini."""
 
@@ -142,6 +183,10 @@ Ensure you detect at least 3 to 5 key numerical variables that determine success
         res_gem = await GeminiAdapter.generate_json(prompt)
         if res_gem and "variables" in res_gem and len(res_gem["variables"]) >= 2:
             return res_gem
+
+        res_or = await OpenRouterAdapter.chat_completion(prompt)
+        if res_or and "variables" in res_or and len(res_or["variables"]) >= 2:
+            return res_or
 
         return None
 
@@ -220,5 +265,10 @@ Output raw JSON only."""
 
         res_a = await GroqAdapter.chat_completion(prompt_groq)
         res_b = await GeminiAdapter.generate_json(prompt_gemini)
+
+        if not res_a:
+            res_a = await OpenRouterAdapter.chat_completion(prompt_groq)
+        if not res_b and settings.OPENROUTER_API_KEY:
+            res_b = await OpenRouterAdapter.chat_completion(prompt_gemini)
 
         return res_a, res_b
