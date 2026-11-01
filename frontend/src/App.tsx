@@ -1,3 +1,4 @@
+import { DEFAULT_SYNTHESIS } from "./api/mockData";
 import React, { useState, useEffect, useCallback } from "react";
 import { Navbar, LabTab } from "./components/Navbar";
 import { SynthesisHeader } from "./components/SynthesisHeader";
@@ -100,11 +101,11 @@ export const App: React.FC = () => {
   );
   const [timeHorizon, setTimeHorizon] = useState<string>("24_hours");
   const [conditions, setConditions] = useState<Record<string, ScenarioVariable>>(INITIAL_CONDITIONS);
-  const [synthesisResponse, setSynthesisResponse] = useState<SynthesisResponse | null>(null);
+  const [synthesisResponse, setSynthesisResponse] = useState<SynthesisResponse>(DEFAULT_SYNTHESIS);
   const [isSynthesizing, setIsSynthesizing] = useState<boolean>(false);
   const [simulationProgress, setSimulationProgress] = useState<number>(0);
   const [simulationStepText, setSimulationStepText] = useState<string>("Analyzing scenario initial conditions...");
-  const [selectedFutureId, setSelectedFutureId] = useState<string | null>(null);
+  const [selectedFutureId, setSelectedFutureId] = useState<string | null>("future_1");
   const [whatIfResult, setWhatIfResult] = useState<ScenarioWhatIfResponse | null>(null);
 
   // Scientific Foundations (Chaos Engine) State
@@ -304,11 +305,10 @@ export const App: React.FC = () => {
     handleSynthesizeFutures(scenarioDescription, modifiedVars);
   }, [handleSynthesizeFutures, scenarioDescription]);
 
-  // Initial Theme & Auto-Synthesis on Mount
+  // Initial Theme
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
-    handleSynthesizeFutures();
-  }, []);
+  }, [theme]);
 
   // Scientific Foundations: Load Presets
   useEffect(() => {

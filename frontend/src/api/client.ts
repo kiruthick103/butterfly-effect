@@ -1,3 +1,13 @@
+import {
+  DEFAULT_SYNTHESIS,
+  PRESET_SYNTHESIS_MAP,
+  FALLBACK_TEMPLATES,
+  getFallbackSynthesis,
+  getFallbackWhatIf,
+  getFallbackSensitivity,
+  getFallbackPresets,
+  getFallbackHistory,
+} from './mockData';
 /**
  * API Client communicating with the FastAPI scientific simulation backend.
  */
@@ -46,29 +56,40 @@ class ApiClient {
       headers["Authorization"] = `Bearer ${this.token}`;
     }
 
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
-      ...options,
-      headers,
-    });
+    try {
+      const response = await fetch(`${BASE_URL}${endpoint}`, {
+        ...options,
+        headers,
+      });
 
-    if (!response.ok) {
+      const contentType = response.headers.get("content-type") || "";
+      if (response.ok && contentType.includes("application/json")) {
+        return await response.json();
+      }
+
       let errorMsg = `HTTP Error ${response.status}`;
       try {
-        const errJson = await response.json();
-        if (errJson.detail) errorMsg = errJson.detail;
-        else if (errJson.error?.message) errorMsg = errJson.error.message;
+        if (contentType.includes("application/json")) {
+          const errJson = await response.json();
+          if (errJson.detail) errorMsg = errJson.detail;
+          else if (errJson.error?.message) errorMsg = errJson.error.message;
+        }
       } catch {
         // fallback
       }
       throw new Error(errorMsg);
+    } catch (err) {
+      throw err;
     }
-
-    return response.json();
   }
 
   // --- Simulations ---
   async getPresets(): Promise<Preset[]> {
-    return this.request<Preset[]>("/simulations/presets");
+    try {
+      return await this.request<Preset[]>("/simulations/presets");
+    } catch {
+      return getFallbackPresets();
+    }
   }
 
   async runSimulation(payload: {
@@ -241,7 +262,11 @@ class ApiClient {
 
   // --- Scenario-Based Future Forecasting & Butterfly Effect Simulator ---
   async getScenarioTemplates(): Promise<ScenarioTemplate[]> {
-    return this.request<ScenarioTemplate[]>("/synthesis/templates");
+    try {
+      return await this.request<ScenarioTemplate[]>("/synthesis/templates");
+    } catch {
+      return FALLBACK_TEMPLATES;
+    }
   }
 
   async normalizeScenario(description: string, variables: Record<string, number> = {}): Promise<{ template_id: string; title: string; time_horizon: string; detected_conditions: Record<string, ScenarioVariable> }> {
@@ -252,10 +277,15 @@ class ApiClient {
   }
 
   async synthesizeFutures(description: string, time_horizon: string = "24_hours", variables: Record<string, number> = {}): Promise<SynthesisResponse> {
-    return this.request<SynthesisResponse>("/synthesis/generate", {
-      method: "POST",
-      body: JSON.stringify({ description, time_horizon, variables })
-    });
+    try {
+      return await this.request<SynthesisResponse>("/synthesis/generate", {
+        method: "POST",
+        body: JSON.stringify({ description, time_horizon, variables })
+      });
+    } catch (err) {
+      console.info("[Offline/Vercel Engine] Running dynamical synthesis fallback:", err);
+      return getFallbackSynthesis(description, time_horizon, variables);
+    }
   }
 
   async runScenarioWhatIf(
@@ -266,25 +296,37 @@ class ApiClient {
     current_conditions: Record<string, number>,
     time_horizon: string = "24_hours"
   ): Promise<ScenarioWhatIfResponse> {
-    return this.request<ScenarioWhatIfResponse>("/synthesis/whatif", {
-      method: "POST",
-      body: JSON.stringify({
-        scenario_id,
-        description,
-        variable_name,
-        new_value,
-        current_conditions,
-        time_horizon
-      })
-    });
+    try {
+      return await this.request<ScenarioWhatIfResponse>("/synthesis/whatif", {
+        method: "POST",
+        body: JSON.stringify({
+          scenario_id,
+          description,
+          variable_name,
+          new_value,
+          current_conditions,
+          time_horizon
+        })
+      });
+    } catch {
+      return getFallbackWhatIf(scenario_id, description, variable_name, new_value, current_conditions, time_horizon);
+    }
   }
 
   async getScenarioSensitivity(): Promise<ScenarioSensitivityMatrixResponse> {
-    return this.request<ScenarioSensitivityMatrixResponse>("/synthesis/sensitivity");
+    try {
+      return await this.request<ScenarioSensitivityMatrixResponse>("/synthesis/sensitivity");
+    } catch {
+      return getFallbackSensitivity();
+    }
   }
 
   async getExperimentHistory(): Promise<ExperimentHistoryItem[]> {
-    return this.request<ExperimentHistoryItem[]>("/synthesis/history");
+    try {
+      return await this.request<ExperimentHistoryItem[]>("/synthesis/history");
+    } catch {
+      return getFallbackHistory();
+    }
   }
 
   async deleteScenarioExperiment(expId: string): Promise<{ status: string; id: string }> {
