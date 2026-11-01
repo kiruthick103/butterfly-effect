@@ -30,9 +30,13 @@ class Settings(BaseSettings):
     ]
 
     # AI Configuration
-    AI_PROVIDER: str = os.getenv("AI_PROVIDER", "mock")  # 'openai', 'anthropic', 'gemini', 'mock'
+    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
+    GROQ_MODEL: str = os.getenv("GROQ_MODEL", "qwen/qwen3.8-27b")
+    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
+    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
+    AI_PROVIDER: str = os.getenv("AI_PROVIDER", "synthesis")  # Unified AI Synthesis Engine
     AI_API_KEY: str = os.getenv("AI_API_KEY", "")
-    AI_MODEL: str = os.getenv("AI_MODEL", "gpt-4o-mini")
+    AI_MODEL: str = os.getenv("AI_MODEL", "qwen/qwen3.8-27b")
 
     # Simulation Resource Limits (OWASP / DoS protection)
     MAX_SIMULATION_STEPS: int = 100000
@@ -41,6 +45,8 @@ class Settings(BaseSettings):
     MAX_SIMULATION_DT: float = 0.5
     MAX_HEATMAP_GRID_SIZE: int = 35  # Max 35x35 = 1,225 runs per heatmap request
     MAX_MICROSCOPE_LEVELS: int = 10
+    SIMULATION_DEFAULT_TRIALS: int = 1000
+    SIMULATION_MAX_TRIALS: int = 5000
 
 
 

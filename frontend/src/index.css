@@ -219,3 +219,34 @@ h1, h2, h3, h4, h5 {
   border: 1px solid rgba(148, 163, 184, 0.15);
   border-radius: 4px;
 }
+
+/* Preset Chips */
+.scenario-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 13px;
+  border-radius: 9999px;
+  font-size: 0.81rem;
+  font-weight: 500;
+  background-color: rgba(15, 23, 42, 0.85);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.scenario-chip:hover {
+  border-color: var(--accent-baseline);
+  color: var(--accent-baseline);
+  background-color: rgba(56, 189, 248, 0.12);
+}
+
+.scenario-chip.active {
+  background-color: var(--accent-baseline);
+  color: #080c14;
+  font-weight: 700;
+  border-color: var(--accent-baseline);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
+}

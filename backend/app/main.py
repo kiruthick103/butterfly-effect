@@ -21,6 +21,8 @@ from app.api.v1.bifurcation import router as bifurcation_router
 from app.api.v1.lessons import router as lessons_router
 from app.api.v1.exports import router as exports_router
 from app.api.v1.health import router as health_router
+from app.api.v1.forecasting import router as forecasting_router
+from app.api.v1.synthesis import router as synthesis_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("butterfly_effect_lab")
@@ -88,6 +90,8 @@ app.include_router(heatmap_router, prefix=settings.API_V1_STR)
 app.include_router(bifurcation_router, prefix=settings.API_V1_STR)
 app.include_router(lessons_router, prefix=settings.API_V1_STR)
 app.include_router(exports_router, prefix=settings.API_V1_STR)
+app.include_router(forecasting_router, prefix=settings.API_V1_STR)
+app.include_router(synthesis_router, prefix=settings.API_V1_STR)
 
 
 if __name__ == "__main__":

@@ -5,7 +5,13 @@
 import {
   SimulationResult, Preset, ScenarioResult,
   MicroscopeResult, HeatmapResult, BifurcationResult,
-  GuidedLesson, ExperimentRecord
+  GuidedLesson, ExperimentRecord,
+  CurrentForecastResponse, WhatIfResponse,
+  SensitivityMatrixResponse, ForecastHistoryResponse,
+  LocationOption,
+  ScenarioTemplate, ScenarioVariable, SynthesisResponse,
+  ScenarioWhatIfResponse, ScenarioSensitivityMatrixResponse,
+  ExperimentHistoryItem
 } from "../types";
 
 const BASE_URL = "/api/v1";
@@ -205,9 +211,89 @@ class ApiClient {
     return this.request<any>("/auth/me");
   }
 
-  logout() {
-    this.setToken(null);
+  // --- Real-Time Forecasting & Sensitivity Lab ---
+  async getForecastingLocations(): Promise<LocationOption[]> {
+    return this.request<LocationOption[]>("/forecasting/locations");
+  }
+
+  async getCurrentForecast(location: string = "nyc", demo: boolean = false): Promise<CurrentForecastResponse> {
+    return this.request<CurrentForecastResponse>(`/forecasting/current?location=${encodeURIComponent(location)}&demo=${demo}`);
+  }
+
+  async runWhatIf(variable: string, perturbationPercentage: number, horizonSteps: number = 15): Promise<WhatIfResponse> {
+    return this.request<WhatIfResponse>("/forecasting/whatif", {
+      method: "POST",
+      body: JSON.stringify({
+        variable,
+        perturbation_percentage: perturbationPercentage,
+        horizon_steps: horizonSteps
+      })
+    });
+  }
+
+  async getSensitivityMatrix(): Promise<SensitivityMatrixResponse> {
+    return this.request<SensitivityMatrixResponse>("/forecasting/sensitivity");
+  }
+
+  async getForecastHistory(): Promise<ForecastHistoryResponse> {
+    return this.request<ForecastHistoryResponse>("/forecasting/history");
+  }
+
+  // --- Scenario-Based Future Forecasting & Butterfly Effect Simulator ---
+  async getScenarioTemplates(): Promise<ScenarioTemplate[]> {
+    return this.request<ScenarioTemplate[]>("/synthesis/templates");
+  }
+
+  async normalizeScenario(description: string, variables: Record<string, number> = {}): Promise<{ template_id: string; title: string; time_horizon: string; detected_conditions: Record<string, ScenarioVariable> }> {
+    return this.request("/synthesis/normalize", {
+      method: "POST",
+      body: JSON.stringify({ description, variables })
+    });
+  }
+
+  async synthesizeFutures(description: string, time_horizon: string = "24_hours", variables: Record<string, number> = {}): Promise<SynthesisResponse> {
+    return this.request<SynthesisResponse>("/synthesis/generate", {
+      method: "POST",
+      body: JSON.stringify({ description, time_horizon, variables })
+    });
+  }
+
+  async runScenarioWhatIf(
+    scenario_id: string,
+    description: string,
+    variable_name: string,
+    new_value: number,
+    current_conditions: Record<string, number>,
+    time_horizon: string = "24_hours"
+  ): Promise<ScenarioWhatIfResponse> {
+    return this.request<ScenarioWhatIfResponse>("/synthesis/whatif", {
+      method: "POST",
+      body: JSON.stringify({
+        scenario_id,
+        description,
+        variable_name,
+        new_value,
+        current_conditions,
+        time_horizon
+      })
+    });
+  }
+
+  async getScenarioSensitivity(): Promise<ScenarioSensitivityMatrixResponse> {
+    return this.request<ScenarioSensitivityMatrixResponse>("/synthesis/sensitivity");
+  }
+
+  async getExperimentHistory(): Promise<ExperimentHistoryItem[]> {
+    return this.request<ExperimentHistoryItem[]>("/synthesis/history");
+  }
+
+  async deleteScenarioExperiment(expId: string): Promise<{ status: string; id: string }> {
+    return this.request<{ status: string; id: string }>(`/synthesis/history/${encodeURIComponent(expId)}`, {
+      method: "DELETE"
+    });
   }
 }
 
 export const api = new ApiClient();
+
+
