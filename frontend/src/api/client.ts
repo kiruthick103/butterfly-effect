@@ -14,7 +14,7 @@ import {
   ExperimentHistoryItem
 } from "../types";
 
-const BASE_URL = "/api/v1";
+const BASE_URL: string = (import.meta as any).env?.VITE_API_BASE_URL ? `${(import.meta as any).env.VITE_API_BASE_URL}/api/v1` : "/api/v1";
 
 class ApiClient {
   private token: string | null = null;
